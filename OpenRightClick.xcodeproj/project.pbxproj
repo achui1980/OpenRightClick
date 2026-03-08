@@ -6,8 +6,37 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		E10000012F5C000000000001 /* OpenRightClickExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E10000002F5C000000000002 /* OpenRightClickExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		E10000012F5C000000000010 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D69798322F5BDEA60080DC82 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E10000002F5C000000000003;
+			remoteInfo = OpenRightClickExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		E10000012F5C000000000020 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				E10000012F5C000000000001 /* OpenRightClickExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		D697983A2F5BDEA60080DC82 /* OpenRightClick.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = OpenRightClick.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E10000002F5C000000000002 /* OpenRightClickExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = OpenRightClickExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -16,10 +45,35 @@
 			path = OpenRightClick;
 			sourceTree = "<group>";
 		};
+		E10000002F5C000000000004 /* OpenRightClickExtension */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				E10000002F5C00000000000C /* PBXFileSystemSynchronizedBuildFileExceptionSet */,
+			);
+			path = OpenRightClickExtension;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		E10000002F5C00000000000C /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = E10000002F5C000000000003 /* OpenRightClickExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		D69798372F5BDEA60080DC82 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E10000002F5C000000000005 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -33,6 +87,7 @@
 			isa = PBXGroup;
 			children = (
 				D697983C2F5BDEA60080DC82 /* OpenRightClick */,
+				E10000002F5C000000000004 /* OpenRightClickExtension */,
 				D697983B2F5BDEA60080DC82 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +96,7 @@
 			isa = PBXGroup;
 			children = (
 				D697983A2F5BDEA60080DC82 /* OpenRightClick.app */,
+				E10000002F5C000000000002 /* OpenRightClickExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -55,10 +111,12 @@
 				D69798362F5BDEA60080DC82 /* Sources */,
 				D69798372F5BDEA60080DC82 /* Frameworks */,
 				D69798382F5BDEA60080DC82 /* Resources */,
+				E10000012F5C000000000020 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				E10000012F5C000000000011 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				D697983C2F5BDEA60080DC82 /* OpenRightClick */,
@@ -69,6 +127,26 @@
 			productName = OpenRightClick;
 			productReference = D697983A2F5BDEA60080DC82 /* OpenRightClick.app */;
 			productType = "com.apple.product-type.application";
+		};
+		E10000002F5C000000000003 /* OpenRightClickExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E10000002F5C000000000009 /* Build configuration list for PBXNativeTarget "OpenRightClickExtension" */;
+			buildPhases = (
+				E10000002F5C000000000006 /* Sources */,
+				E10000002F5C000000000005 /* Frameworks */,
+				E10000002F5C000000000007 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				E10000002F5C000000000004 /* OpenRightClickExtension */,
+			);
+			name = OpenRightClickExtension;
+			productName = OpenRightClickExtension;
+			productReference = E10000002F5C000000000002 /* OpenRightClickExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -81,6 +159,9 @@
 				LastUpgradeCheck = 2630;
 				TargetAttributes = {
 					D69798392F5BDEA60080DC82 = {
+						CreatedOnToolsVersion = 26.3;
+					};
+					E10000002F5C000000000003 = {
 						CreatedOnToolsVersion = 26.3;
 					};
 				};
@@ -100,12 +181,20 @@
 			projectRoot = "";
 			targets = (
 				D69798392F5BDEA60080DC82 /* OpenRightClick */,
+				E10000002F5C000000000003 /* OpenRightClickExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		D69798382F5BDEA60080DC82 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E10000002F5C000000000007 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -122,7 +211,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E10000002F5C000000000006 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		E10000012F5C000000000011 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E10000002F5C000000000003 /* OpenRightClickExtension */;
+			targetProxy = E10000012F5C000000000010 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		D69798432F5BDEA70080DC82 /* Debug */ = {
@@ -248,6 +352,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = OpenRightClick/OpenRightClick.entitlements;
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -278,6 +384,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = OpenRightClick/OpenRightClick.entitlements;
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -303,6 +411,64 @@
 			};
 			name = Release;
 		};
+		E10000002F5C00000000000A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = OpenRightClickExtension/OpenRightClickExtension.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = OpenRightClickExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = OpenRightClickExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.achui.OpenRightClick.Extension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SKIP_INSTALL = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		E10000002F5C00000000000B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = OpenRightClickExtension/OpenRightClickExtension.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = OpenRightClickExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = OpenRightClickExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.achui.OpenRightClick.Extension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				SKIP_INSTALL = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -320,6 +486,15 @@
 			buildConfigurations = (
 				D69798462F5BDEA70080DC82 /* Debug */,
 				D69798472F5BDEA70080DC82 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E10000002F5C000000000009 /* Build configuration list for PBXNativeTarget "OpenRightClickExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E10000002F5C00000000000A /* Debug */,
+				E10000002F5C00000000000B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
