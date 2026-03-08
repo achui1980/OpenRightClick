@@ -111,55 +111,74 @@ class FinderSync: FIFinderSync {
     
     @objc func openWithExternalApp(_ sender: NSMenuItem) {
         guard let items = FIFinderSyncController.default().selectedItemURLs(),
-              let appPath = defaults?.string(forKey: AppSettings.Keys.externalAppPath) else { return }
+              let appPath = defaults?.string(forKey: AppSettings.Keys.externalAppPath) else {
+            NSLog("OpenRightClick: openWithExternalApp - missing items or appPath")
+            return
+        }
+        NSLog("OpenRightClick: openWithExternalApp - opening %d items with %@", items.count, appPath)
         let appURL = URL(fileURLWithPath: appPath)
         let config = NSWorkspace.OpenConfiguration()
         NSWorkspace.shared.open(items, withApplicationAt: appURL, configuration: config)
     }
     
     @objc func copyPath(_ sender: NSMenuItem) {
-        guard let items = FIFinderSyncController.default().selectedItemURLs() else { return }
+        guard let items = FIFinderSyncController.default().selectedItemURLs() else {
+            NSLog("OpenRightClick: copyPath - no selected items")
+            return
+        }
         let paths = items.map { $0.path }.joined(separator: "\n")
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(paths, forType: .string)
+        NSLog("OpenRightClick: copyPath - copied %d paths", items.count)
     }
     
     @objc func deleteItems(_ sender: NSMenuItem) {
-        guard let items = FIFinderSyncController.default().selectedItemURLs() else { return }
-        
-        let alert = NSAlert()
-        alert.messageText = "Move to Trash?"
-        let count = items.count
-        if count == 1 {
-            alert.informativeText = "Are you sure you want to move \"\(items[0].lastPathComponent)\" to the Trash?"
-        } else {
-            alert.informativeText = "Are you sure you want to move \(count) items to the Trash?"
+        guard let items = FIFinderSyncController.default().selectedItemURLs() else {
+            NSLog("OpenRightClick: deleteItems - no selected items")
+            return
         }
-        alert.alertStyle = .warning
-        alert.addButton(withTitle: "Move to Trash")
-        alert.addButton(withTitle: "Cancel")
-        
-        if alert.runModal() == .alertFirstButtonReturn {
-            for url in items {
-                try? FileManager.default.trashItem(at: url, resultingItemURL: nil)
+        NSLog("OpenRightClick: deleteItems - trashing %d items", items.count)
+        for url in items {
+            do {
+                try FileManager.default.trashItem(at: url, resultingItemURL: nil)
+                NSLog("OpenRightClick: trashed %@", url.path)
+            } catch {
+                NSLog("OpenRightClick: failed to trash %@: %@", url.path, error.localizedDescription)
             }
         }
     }
     
     @objc func toggleHidden(_ sender: NSMenuItem) {
-        guard let items = FIFinderSyncController.default().selectedItemURLs() else { return }
+        guard let items = FIFinderSyncController.default().selectedItemURLs() else {
+            NSLog("OpenRightClick: toggleHidden - no selected items")
+            return
+        }
+        NSLog("OpenRightClick: toggleHidden - toggling %d items", items.count)
         for item in items {
             var url = item
             let isHidden = (try? url.resourceValues(forKeys: [.isHiddenKey]).isHidden) ?? false
             var values = URLResourceValues()
             values.isHidden = !isHidden
-            try? url.setResourceValues(values)
+            do {
+                try url.setResourceValues(values)
+                NSLog("OpenRightClick: set hidden=%d for %@", !isHidden, url.path)
+            } catch {
+                NSLog("OpenRightClick: toggleHidden FAILED for %@: %@", url.path, error.localizedDescription)
+            }
         }
     }
     
     @objc func createNewFile(_ sender: NSMenuItem) {
-        guard let ext = sender.representedObject as? String,
-              let target = FIFinderSyncController.default().targetedURL() else { return }
+        guard let ext = sender.representedObject as? String else {
+            NSLog("OpenRightClick: createNewFile - no extension in representedObject")
+            return
+        }
+        guard let target = FIFinderSyncController.default().targetedURL() else {
+            NSLog("OpenRightClick: createNewFile - no targetedURL")
+            return
+        }
+        
+        NSLog("OpenRightClick: createNewFile - ext=%@, target=%@", ext, target.path)
         
         let baseName = "Untitled"
         var fileURL = target.appendingPathComponent("\(baseName).\(ext)")
@@ -171,26 +190,43 @@ class FinderSync: FIFinderSync {
             counter += 1
         }
         
-        switch ext {
-        case "txt":
-            FileManager.default.createFile(atPath: fileURL.path, contents: nil)
-        case "json":
-            FileManager.default.createFile(atPath: fileURL.path, contents: "{}\n".data(using: .utf8))
-        case "md":
-            FileManager.default.createFile(atPath: fileURL.path, contents: "# Untitled\n".data(using: .utf8))
-        case "docx":
-            try? OfficeTemplateGenerator.createMinimalDocx(at: fileURL)
-        case "pptx":
-            try? OfficeTemplateGenerator.createMinimalPptx(at: fileURL)
-        case "xlsx":
-            try? OfficeTemplateGenerator.createMinimalXlsx(at: fileURL)
-        default:
-            FileManager.default.createFile(atPath: fileURL.path, contents: nil)
+        NSLog("OpenRightClick: will create file at %@", fileURL.path)
+        
+        do {
+            switch ext {
+            case "txt":
+                let success = FileManager.default.createFile(atPath: fileURL.path, contents: Data())
+                NSLog("OpenRightClick: createFile txt result=%d", success)
+            case "json":
+                try "{}\n".data(using: .utf8)!.write(to: fileURL)
+                NSLog("OpenRightClick: wrote json")
+            case "md":
+                try "# Untitled\n".data(using: .utf8)!.write(to: fileURL)
+                NSLog("OpenRightClick: wrote md")
+            case "docx":
+                try OfficeTemplateGenerator.createMinimalDocx(at: fileURL)
+                NSLog("OpenRightClick: wrote docx")
+            case "pptx":
+                try OfficeTemplateGenerator.createMinimalPptx(at: fileURL)
+                NSLog("OpenRightClick: wrote pptx")
+            case "xlsx":
+                try OfficeTemplateGenerator.createMinimalXlsx(at: fileURL)
+                NSLog("OpenRightClick: wrote xlsx")
+            default:
+                let success = FileManager.default.createFile(atPath: fileURL.path, contents: Data())
+                NSLog("OpenRightClick: createFile default result=%d", success)
+            }
+        } catch {
+            NSLog("OpenRightClick: createNewFile FAILED: %@", error.localizedDescription)
         }
     }
     
     @objc func openQuickAccess(_ sender: NSMenuItem) {
-        guard let url = sender.representedObject as? URL else { return }
+        guard let url = sender.representedObject as? URL else {
+            NSLog("OpenRightClick: openQuickAccess - no URL in representedObject")
+            return
+        }
+        NSLog("OpenRightClick: openQuickAccess - opening %@", url.path)
         NSWorkspace.shared.open(url)
     }
 }

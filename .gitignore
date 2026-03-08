@@ -1,0 +1,13 @@
+# Xcode user data
+*.xcuserstate
+xcuserdata/
+
+# Build products
+build/
+DerivedData/
+
+# macOS
+.DS_Store
+
+# AI-DLC docs (legacy)
+aidlc-docs/
