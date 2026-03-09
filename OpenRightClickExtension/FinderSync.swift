@@ -20,54 +20,59 @@ class FinderSync: FIFinderSync {
     override func menu(for menuKind: FIMenuKind) -> NSMenu {
         let menu = NSMenu(title: "OpenRightClick")
         
-        guard let items = FIFinderSyncController.default().selectedItemURLs(),
-              !items.isEmpty else {
-            return menu
+        let items = FIFinderSyncController.default().selectedItemURLs() ?? []
+        let hasSelection = !items.isEmpty
+        
+        // Selection-dependent actions
+        if hasSelection {
+            // Open with External App
+            if let appPath = defaults?.string(forKey: AppSettings.Keys.externalAppPath),
+               !appPath.isEmpty {
+                let appName = URL(fileURLWithPath: appPath).deletingPathExtension().lastPathComponent
+                let openItem = NSMenuItem(title: "Open with \(appName)", action: #selector(openWithExternalApp(_:)), keyEquivalent: "")
+                openItem.image = NSImage(systemSymbolName: "arrow.up.forward.app", accessibilityDescription: nil)
+                menu.addItem(openItem)
+            }
+            
+            // Copy Path
+            let copyItem = NSMenuItem(title: "Copy Path", action: #selector(copyPath(_:)), keyEquivalent: "")
+            copyItem.image = NSImage(systemSymbolName: "doc.on.clipboard", accessibilityDescription: nil)
+            menu.addItem(copyItem)
+            
+            menu.addItem(NSMenuItem.separator())
+            
+            // Delete
+            let deleteItem = NSMenuItem(title: "Delete", action: #selector(deleteItems(_:)), keyEquivalent: "")
+            deleteItem.image = NSImage(systemSymbolName: "trash", accessibilityDescription: nil)
+            menu.addItem(deleteItem)
+            
+            // Hide/Unhide
+            let isHidden = (try? items.first?.resourceValues(forKeys: [.isHiddenKey]).isHidden) ?? false
+            let hideTitle = isHidden ? "Unhide" : "Hide"
+            let hideItem = NSMenuItem(title: hideTitle, action: #selector(toggleHidden(_:)), keyEquivalent: "")
+            hideItem.image = NSImage(systemSymbolName: isHidden ? "eye" : "eye.slash", accessibilityDescription: nil)
+            menu.addItem(hideItem)
+            
+            menu.addItem(NSMenuItem.separator())
         }
         
-        // Open with External App
-        if let appPath = defaults?.string(forKey: AppSettings.Keys.externalAppPath),
-           !appPath.isEmpty {
-            let appName = URL(fileURLWithPath: appPath).deletingPathExtension().lastPathComponent
-            let openItem = NSMenuItem(title: "Open with \(appName)", action: #selector(openWithExternalApp(_:)), keyEquivalent: "")
-            openItem.image = NSImage(systemSymbolName: "arrow.up.forward.app", accessibilityDescription: nil)
-            menu.addItem(openItem)
-        }
-        
-        // Copy Path
-        let copyItem = NSMenuItem(title: "Copy Path", action: #selector(copyPath(_:)), keyEquivalent: "")
-        copyItem.image = NSImage(systemSymbolName: "doc.on.clipboard", accessibilityDescription: nil)
-        menu.addItem(copyItem)
-        
-        menu.addItem(NSMenuItem.separator())
-        
-        // Delete
-        let deleteItem = NSMenuItem(title: "Delete", action: #selector(deleteItems(_:)), keyEquivalent: "")
-        deleteItem.image = NSImage(systemSymbolName: "trash", accessibilityDescription: nil)
-        menu.addItem(deleteItem)
-        
-        // Hide/Unhide
-        let isHidden = (try? items.first?.resourceValues(forKeys: [.isHiddenKey]).isHidden) ?? false
-        let hideTitle = isHidden ? "Unhide" : "Hide"
-        let hideItem = NSMenuItem(title: hideTitle, action: #selector(toggleHidden(_:)), keyEquivalent: "")
-        hideItem.image = NSImage(systemSymbolName: isHidden ? "eye" : "eye.slash", accessibilityDescription: nil)
-        menu.addItem(hideItem)
-        
-        menu.addItem(NSMenuItem.separator())
+        // Selection-independent actions (always shown)
         
         // Create New File submenu
+        // NOTE: Finder Sync copies NSMenuItems and does NOT preserve representedObject.
+        // Use tag (Int) to identify file types instead.
         let createMenu = NSMenu(title: "Create New File")
-        let fileTypes: [(String, String)] = [
-            ("Plain Text (.txt)", "txt"),
-            ("JSON (.json)", "json"),
-            ("Markdown (.md)", "md"),
-            ("Word Document (.docx)", "docx"),
-            ("PowerPoint (.pptx)", "pptx"),
-            ("Excel Spreadsheet (.xlsx)", "xlsx"),
+        let fileTypes: [(String, Int)] = [
+            ("Plain Text (.txt)", 0),
+            ("JSON (.json)", 1),
+            ("Markdown (.md)", 2),
+            ("Word Document (.docx)", 3),
+            ("PowerPoint (.pptx)", 4),
+            ("Excel Spreadsheet (.xlsx)", 5),
         ]
-        for (title, ext) in fileTypes {
+        for (title, tag) in fileTypes {
             let item = NSMenuItem(title: title, action: #selector(createNewFile(_:)), keyEquivalent: "")
-            item.representedObject = ext
+            item.tag = tag
             createMenu.addItem(item)
         }
         let createItem = NSMenuItem(title: "Create New File", action: nil, keyEquivalent: "")
@@ -78,22 +83,24 @@ class FinderSync: FIFinderSync {
         menu.addItem(NSMenuItem.separator())
         
         // Quick Access submenu
+        // NOTE: Use tag instead of representedObject (not preserved by Finder Sync).
+        // Tags: 10=Downloads, 11=Desktop, 12=Documents
         let quickMenu = NSMenu(title: "Quick Access")
         if defaults?.object(forKey: AppSettings.Keys.quickAccessDownloads) as? Bool ?? true {
             let item = NSMenuItem(title: "Downloads", action: #selector(openQuickAccess(_:)), keyEquivalent: "")
-            item.representedObject = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first
+            item.tag = 10
             item.image = NSImage(systemSymbolName: "arrow.down.circle", accessibilityDescription: nil)
             quickMenu.addItem(item)
         }
         if defaults?.object(forKey: AppSettings.Keys.quickAccessDesktop) as? Bool ?? true {
             let item = NSMenuItem(title: "Desktop", action: #selector(openQuickAccess(_:)), keyEquivalent: "")
-            item.representedObject = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first
+            item.tag = 11
             item.image = NSImage(systemSymbolName: "menubar.dock.rectangle", accessibilityDescription: nil)
             quickMenu.addItem(item)
         }
         if defaults?.object(forKey: AppSettings.Keys.quickAccessDocuments) as? Bool ?? true {
             let item = NSMenuItem(title: "Documents", action: #selector(openQuickAccess(_:)), keyEquivalent: "")
-            item.representedObject = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+            item.tag = 12
             item.image = NSImage(systemSymbolName: "doc.text", accessibilityDescription: nil)
             quickMenu.addItem(item)
         }
@@ -169,10 +176,13 @@ class FinderSync: FIFinderSync {
     }
     
     @objc func createNewFile(_ sender: NSMenuItem) {
-        guard let ext = sender.representedObject as? String else {
-            NSLog("OpenRightClick: createNewFile - no extension in representedObject")
+        let extensions = ["txt", "json", "md", "docx", "pptx", "xlsx"]
+        let tag = sender.tag
+        guard tag >= 0, tag < extensions.count else {
+            NSLog("OpenRightClick: createNewFile - invalid tag %d", tag)
             return
         }
+        let ext = extensions[tag]
         guard let target = FIFinderSyncController.default().targetedURL() else {
             NSLog("OpenRightClick: createNewFile - no targetedURL")
             return
@@ -222,11 +232,23 @@ class FinderSync: FIFinderSync {
     }
     
     @objc func openQuickAccess(_ sender: NSMenuItem) {
-        guard let url = sender.representedObject as? URL else {
-            NSLog("OpenRightClick: openQuickAccess - no URL in representedObject")
+        let url: URL?
+        switch sender.tag {
+        case 10:
+            url = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first
+        case 11:
+            url = FileManager.default.urls(for: .desktopDirectory, in: .userDomainMask).first
+        case 12:
+            url = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+        default:
+            NSLog("OpenRightClick: openQuickAccess - invalid tag %d", sender.tag)
             return
         }
-        NSLog("OpenRightClick: openQuickAccess - opening %@", url.path)
-        NSWorkspace.shared.open(url)
+        guard let target = url else {
+            NSLog("OpenRightClick: openQuickAccess - could not resolve directory for tag %d", sender.tag)
+            return
+        }
+        NSLog("OpenRightClick: openQuickAccess - opening %@", target.path)
+        NSWorkspace.shared.open(target)
     }
 }
