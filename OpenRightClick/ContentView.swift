@@ -33,6 +33,16 @@ struct ContentView: View {
         }
     }
 
+    private func addCustomExtension() {
+        let clean = newExtension
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+            .replacingOccurrences(of: ".", with: "")
+        guard !clean.isEmpty, !settings.customFileExtensions.contains(clean) else { return }
+        settings.customFileExtensions.append(clean)
+        newExtension = ""
+    }
+
     var body: some View {
         Form {
             Section("Extension Status") {
@@ -60,12 +70,16 @@ struct ContentView: View {
                             .lineLimit(1)
                             .truncationMode(.middle)
                             .frame(maxWidth: 200)
+                        Button {
+                            settings.externalApps.removeAll { $0 == appPath }
+                        } label: {
+                            Image(systemName: "minus.circle.fill")
+                                .foregroundStyle(.red)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
-                .onDelete { indices in
-                    settings.externalApps.remove(atOffsets: indices)
-                }
-                Button("Add App…") {
+                Button("Add App...") {
                     let panel = NSOpenPanel()
                     panel.allowedContentTypes = [UTType.application]
                     panel.allowsMultipleSelection = false
@@ -90,15 +104,16 @@ struct ContentView: View {
                             .lineLimit(1)
                             .truncationMode(.middle)
                             .frame(maxWidth: 160)
+                        Button {
+                            settings.customFolders.removeAll { $0.id == folder.id }
+                        } label: {
+                            Image(systemName: "minus.circle.fill")
+                                .foregroundStyle(.red)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
-                .onMove { indices, newOffset in
-                    settings.customFolders.move(fromOffsets: indices, toOffset: newOffset)
-                }
-                .onDelete { indices in
-                    settings.customFolders.remove(atOffsets: indices)
-                }
-                Button("Add Folder…") {
+                Button("Add Folder...") {
                     let panel = NSOpenPanel()
                     panel.canChooseDirectories = true
                     panel.canChooseFiles = false
@@ -119,24 +134,25 @@ struct ContentView: View {
                 Toggle("Excel Spreadsheet (.xlsx)", isOn: $settings.showFileXlsx)
                 if !settings.customFileExtensions.isEmpty {
                     ForEach(settings.customFileExtensions, id: \.self) { ext in
-                        Text(".\(ext)")
-                            .foregroundStyle(.secondary)
-                    }
-                    .onDelete { indices in
-                        settings.customFileExtensions.remove(atOffsets: indices)
+                        HStack {
+                            Text(".\(ext)")
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            Button {
+                                settings.customFileExtensions.removeAll { $0 == ext }
+                            } label: {
+                                Image(systemName: "minus.circle.fill")
+                                    .foregroundStyle(.red)
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
                 }
                 HStack {
                     TextField("Add extension (e.g. swift)", text: $newExtension)
-                    Button("Add") {
-                        let clean = newExtension.trimmingCharacters(in: .whitespacesAndNewlines)
-                            .lowercased()
-                            .replacingOccurrences(of: ".", with: "")
-                        guard !clean.isEmpty, !settings.customFileExtensions.contains(clean) else { return }
-                        settings.customFileExtensions.append(clean)
-                        newExtension = ""
-                    }
-                    .disabled(newExtension.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        .onSubmit { addCustomExtension() }
+                    Button("Add") { addCustomExtension() }
+                        .disabled(newExtension.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
 
@@ -148,12 +164,28 @@ struct ContentView: View {
                 Toggle("Quick Access", isOn: $settings.showQuickAccess)
             }
 
-            Section(header: Text("Menu Order"), footer: Text("Drag to reorder sections in the right-click menu.")) {
-                ForEach(settings.menuSectionOrder, id: \.self) { sectionId in
-                    Label(Self.sectionLabel(for: sectionId), systemImage: Self.sectionIcon(for: sectionId))
-                }
-                .onMove { indices, newOffset in
-                    settings.menuSectionOrder.move(fromOffsets: indices, toOffset: newOffset)
+            Section(header: Text("Menu Order"), footer: Text("Use the arrows to reorder sections in the right-click menu.")) {
+                ForEach(Array(settings.menuSectionOrder.enumerated()), id: \.element) { index, sectionId in
+                    HStack {
+                        Label(Self.sectionLabel(for: sectionId), systemImage: Self.sectionIcon(for: sectionId))
+                        Spacer()
+                        Button {
+                            guard index > 0 else { return }
+                            settings.menuSectionOrder.swapAt(index, index - 1)
+                        } label: {
+                            Image(systemName: "chevron.up")
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(index == 0)
+                        Button {
+                            guard index < settings.menuSectionOrder.count - 1 else { return }
+                            settings.menuSectionOrder.swapAt(index, index + 1)
+                        } label: {
+                            Image(systemName: "chevron.down")
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(index == settings.menuSectionOrder.count - 1)
+                    }
                 }
             }
 
