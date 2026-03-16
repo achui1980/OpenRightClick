@@ -39,7 +39,7 @@ struct ContentView: View {
             .lowercased()
             .replacingOccurrences(of: ".", with: "")
         guard !clean.isEmpty, !settings.customFileExtensions.contains(clean) else { return }
-        settings.customFileExtensions.append(clean)
+        settings.customFileExtensions = settings.customFileExtensions + [clean]
         newExtension = ""
     }
 
@@ -71,7 +71,7 @@ struct ContentView: View {
                             .truncationMode(.middle)
                             .frame(maxWidth: 200)
                         Button {
-                            settings.externalApps.removeAll { $0 == appPath }
+                            settings.externalApps = settings.externalApps.filter { $0 != appPath }
                         } label: {
                             Image(systemName: "minus.circle.fill")
                                 .foregroundStyle(.red)
@@ -86,7 +86,7 @@ struct ContentView: View {
                     panel.directoryURL = URL(fileURLWithPath: "/Applications")
                     if panel.runModal() == .OK, let url = panel.url {
                         guard !settings.externalApps.contains(url.path) else { return }
-                        settings.externalApps.append(url.path)
+                        settings.externalApps = settings.externalApps + [url.path]
                     }
                 }
             }
@@ -105,7 +105,7 @@ struct ContentView: View {
                             .truncationMode(.middle)
                             .frame(maxWidth: 160)
                         Button {
-                            settings.customFolders.removeAll { $0.id == folder.id }
+                            settings.customFolders = settings.customFolders.filter { $0.id != folder.id }
                         } label: {
                             Image(systemName: "minus.circle.fill")
                                 .foregroundStyle(.red)
@@ -120,7 +120,7 @@ struct ContentView: View {
                     panel.allowsMultipleSelection = false
                     if panel.runModal() == .OK, let url = panel.url {
                         let name = url.lastPathComponent
-                        settings.customFolders.append(CustomFolder(path: url.path, displayName: name))
+                        settings.customFolders = settings.customFolders + [CustomFolder(path: url.path, displayName: name)]
                     }
                 }
             }
@@ -139,7 +139,7 @@ struct ContentView: View {
                                 .foregroundStyle(.secondary)
                             Spacer()
                             Button {
-                                settings.customFileExtensions.removeAll { $0 == ext }
+                                settings.customFileExtensions = settings.customFileExtensions.filter { $0 != ext }
                             } label: {
                                 Image(systemName: "minus.circle.fill")
                                     .foregroundStyle(.red)
@@ -171,7 +171,9 @@ struct ContentView: View {
                         Spacer()
                         Button {
                             guard index > 0 else { return }
-                            settings.menuSectionOrder.swapAt(index, index - 1)
+                            var order = settings.menuSectionOrder
+                            order.swapAt(index, index - 1)
+                            settings.menuSectionOrder = order
                         } label: {
                             Image(systemName: "chevron.up")
                         }
@@ -179,7 +181,9 @@ struct ContentView: View {
                         .disabled(index == 0)
                         Button {
                             guard index < settings.menuSectionOrder.count - 1 else { return }
-                            settings.menuSectionOrder.swapAt(index, index + 1)
+                            var order = settings.menuSectionOrder
+                            order.swapAt(index, index + 1)
+                            settings.menuSectionOrder = order
                         } label: {
                             Image(systemName: "chevron.down")
                         }
