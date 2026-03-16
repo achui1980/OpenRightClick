@@ -150,6 +150,7 @@ struct ContentView: View {
                 }
                 HStack {
                     TextField("Add extension (e.g. swift)", text: $newExtension)
+                        .textFieldStyle(.roundedBorder)
                         .onSubmit { addCustomExtension() }
                     Button("Add") { addCustomExtension() }
                         .disabled(newExtension.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
