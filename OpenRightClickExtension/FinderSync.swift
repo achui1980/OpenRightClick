@@ -6,6 +6,18 @@
 import Cocoa
 import FinderSync
 
+/// Mirror of the CustomFileType model defined in SettingsService.swift (main app target).
+/// Both targets use the same JSON representation via the shared App Group UserDefaults.
+private struct CustomFileType: Codable {
+    var id: String
+    var name: String
+    var ext: String
+
+    var menuTitle: String {
+        name.isEmpty ? ".\(ext)" : "\(name) (.\(ext))"
+    }
+}
+
 class FinderSync: FIFinderSync {
     
     let defaults = UserDefaults(suiteName: AppSettings.suiteName)
@@ -102,7 +114,6 @@ class FinderSync: FIFinderSync {
         let showDocx = defaults?.object(forKey: AppSettings.Keys.showFileDocx) as? Bool ?? true
         let showPptx = defaults?.object(forKey: AppSettings.Keys.showFilePptx) as? Bool ?? true
         let showXlsx = defaults?.object(forKey: AppSettings.Keys.showFileXlsx) as? Bool ?? true
-        let customExts = defaults?.stringArray(forKey: AppSettings.Keys.customFileExtensions) ?? []
         let builtIn: [(String, Int, Bool)] = [
             ("Plain Text (.txt)",         0, showTxt),
             ("JSON (.json)",              1, showJson),
@@ -111,14 +122,23 @@ class FinderSync: FIFinderSync {
             ("PowerPoint (.pptx)",        4, showPptx),
             ("Excel Spreadsheet (.xlsx)", 5, showXlsx),
         ]
+        let customTypes: [(title: String, ext: String)]
+        if let data = defaults?.data(forKey: AppSettings.Keys.customFileTypes),
+           let decoded = try? JSONDecoder().decode([CustomFileType].self, from: data) {
+            customTypes = decoded.map { (title: $0.menuTitle, ext: $0.ext) }
+        } else {
+            // Fallback: migrate legacy plain extension strings
+            let legacyExts = defaults?.stringArray(forKey: AppSettings.Keys.customFileExtensions) ?? []
+            customTypes = legacyExts.map { (title: ".\($0)", ext: $0) }
+        }
         let createMenu = NSMenu(title: "Create New File")
         for (title, tag, visible) in builtIn where visible {
             let item = NSMenuItem(title: title, action: #selector(createNewFile(_:)), keyEquivalent: "")
             item.tag = tag
             createMenu.addItem(item)
         }
-        for (index, ext) in customExts.enumerated() {
-            let item = NSMenuItem(title: ".\(ext)", action: #selector(createNewFile(_:)), keyEquivalent: "")
+        for (index, typeEntry) in customTypes.enumerated() {
+            let item = NSMenuItem(title: typeEntry.title, action: #selector(createNewFile(_:)), keyEquivalent: "")
             item.tag = 50 + index
             createMenu.addItem(item)
         }
@@ -231,13 +251,22 @@ class FinderSync: FIFinderSync {
 
         let ext: String
         if tag >= 50 {
-            let customExts = defaults?.stringArray(forKey: AppSettings.Keys.customFileExtensions) ?? []
             let index = tag - 50
-            guard index < customExts.count else {
-                NSLog("OpenRightClick: createNewFile - invalid custom tag %d", tag)
-                return
+            if let data = defaults?.data(forKey: AppSettings.Keys.customFileTypes),
+               let decoded = try? JSONDecoder().decode([CustomFileType].self, from: data) {
+                guard index < decoded.count else {
+                    NSLog("OpenRightClick: createNewFile - invalid custom tag %d", tag)
+                    return
+                }
+                ext = decoded[index].ext
+            } else {
+                let legacyExts = defaults?.stringArray(forKey: AppSettings.Keys.customFileExtensions) ?? []
+                guard index < legacyExts.count else {
+                    NSLog("OpenRightClick: createNewFile - invalid custom tag %d", tag)
+                    return
+                }
+                ext = legacyExts[index]
             }
-            ext = customExts[index]
         } else {
             guard tag >= 0, tag < builtInExtensions.count else {
                 NSLog("OpenRightClick: createNewFile - invalid tag %d", tag)

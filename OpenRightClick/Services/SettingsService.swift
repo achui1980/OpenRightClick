@@ -18,6 +18,23 @@ struct CustomFolder: Codable, Identifiable {
     }
 }
 
+struct CustomFileType: Codable, Identifiable {
+    var id: UUID
+    var name: String
+    var ext: String
+
+    init(id: UUID = UUID(), name: String, ext: String) {
+        self.id = id
+        self.name = name
+        self.ext = ext
+    }
+
+    /// Display label shown in menus and settings UI.
+    var menuTitle: String {
+        name.isEmpty ? ".\(ext)" : "\(name) (.\(ext))"
+    }
+}
+
 class SettingsService: ObservableObject {
     private let defaults: UserDefaults?
 
@@ -60,10 +77,8 @@ class SettingsService: ObservableObject {
     @Published var showFileXlsx: Bool {
         didSet { defaults?.set(showFileXlsx, forKey: AppSettings.Keys.showFileXlsx) }
     }
-    @Published var customFileExtensions: [String] {
-        didSet {
-            defaults?.set(customFileExtensions, forKey: AppSettings.Keys.customFileExtensions)
-        }
+    @Published var customFileTypes: [CustomFileType] {
+        didSet { saveCustomFileTypes() }
     }
     @Published var menuSectionOrder: [String] {
         didSet { defaults?.set(menuSectionOrder, forKey: AppSettings.Keys.menuSectionOrder) }
@@ -83,7 +98,7 @@ class SettingsService: ObservableObject {
         self.showFileDocx = defaults?.object(forKey: AppSettings.Keys.showFileDocx) as? Bool ?? true
         self.showFilePptx = defaults?.object(forKey: AppSettings.Keys.showFilePptx) as? Bool ?? true
         self.showFileXlsx = defaults?.object(forKey: AppSettings.Keys.showFileXlsx) as? Bool ?? true
-        self.customFileExtensions = defaults?.stringArray(forKey: AppSettings.Keys.customFileExtensions) ?? []
+        self.customFileTypes = Self.loadOrMigrateCustomFileTypes(from: defaults)
         self.menuSectionOrder = defaults?.stringArray(forKey: AppSettings.Keys.menuSectionOrder)
             ?? ["openWith", "copy", "destructive", "createFile", "quickAccess"]
         self.customFolders = Self.loadOrMigrateFolders(from: defaults)
@@ -94,6 +109,11 @@ class SettingsService: ObservableObject {
     private func saveFolders() {
         guard let data = try? JSONEncoder().encode(customFolders) else { return }
         defaults?.set(data, forKey: AppSettings.Keys.customFolders)
+    }
+
+    private func saveCustomFileTypes() {
+        guard let data = try? JSONEncoder().encode(customFileTypes) else { return }
+        defaults?.set(data, forKey: AppSettings.Keys.customFileTypes)
     }
 
     /// Loads customFolders from UserDefaults. On first launch (no customFolders key),
@@ -119,6 +139,17 @@ class SettingsService: ObservableObject {
             migrated.append(CustomFolder(path: url.path, displayName: "Documents"))
         }
         return migrated
+    }
+
+    /// Loads customFileTypes from UserDefaults. Migrates old customFileExtensions strings on first launch.
+    private static func loadOrMigrateCustomFileTypes(from defaults: UserDefaults?) -> [CustomFileType] {
+        if let data = defaults?.data(forKey: AppSettings.Keys.customFileTypes),
+           let types = try? JSONDecoder().decode([CustomFileType].self, from: data) {
+            return types
+        }
+        // Migration: convert legacy plain extension strings (name left empty)
+        let legacy = defaults?.stringArray(forKey: AppSettings.Keys.customFileExtensions) ?? []
+        return legacy.map { CustomFileType(name: "", ext: $0) }
     }
 
     /// Loads externalApps from UserDefaults. On first launch migrates the old externalAppPath string.

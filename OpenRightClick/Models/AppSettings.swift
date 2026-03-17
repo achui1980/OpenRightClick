@@ -32,6 +32,7 @@ struct AppSettings {
         static let showFilePptx = "showFilePptx"
         static let showFileXlsx = "showFileXlsx"
         static let customFileExtensions = "customFileExtensions"
+        static let customFileTypes = "customFileTypes"
 
         // Menu section ordering
         static let menuSectionOrder = "menuSectionOrder"

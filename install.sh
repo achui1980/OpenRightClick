@@ -16,6 +16,7 @@ echo "Building ${SCHEME} (${CONFIG})..."
     -scheme "$SCHEME" \
     -configuration "$CONFIG" \
     -derivedDataPath ".build" \
+    -allowProvisioningUpdates \
     build 2>&1 | grep -E "(error:|Build succeeded|Build FAILED|Signing Identity)" || true
 
 APP_SRC=".build/Build/Products/${CONFIG}/${APP_NAME}"

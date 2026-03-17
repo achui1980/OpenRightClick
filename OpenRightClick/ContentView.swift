@@ -10,6 +10,7 @@ import UniformTypeIdentifiers
 struct ContentView: View {
     @EnvironmentObject var settings: SettingsService
     @State private var newExtension = ""
+    @State private var newExtensionName = ""
 
     private static func sectionLabel(for id: String) -> String {
         switch id {
@@ -38,9 +39,11 @@ struct ContentView: View {
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .lowercased()
             .replacingOccurrences(of: ".", with: "")
-        guard !clean.isEmpty, !settings.customFileExtensions.contains(clean) else { return }
-        settings.customFileExtensions = settings.customFileExtensions + [clean]
+        guard !clean.isEmpty, !settings.customFileTypes.contains(where: { $0.ext == clean }) else { return }
+        let trimmedName = newExtensionName.trimmingCharacters(in: .whitespacesAndNewlines)
+        settings.customFileTypes = settings.customFileTypes + [CustomFileType(name: trimmedName, ext: clean)]
         newExtension = ""
+        newExtensionName = ""
     }
 
     var body: some View {
@@ -132,14 +135,14 @@ struct ContentView: View {
                 Toggle("Word Document (.docx)", isOn: $settings.showFileDocx)
                 Toggle("PowerPoint (.pptx)", isOn: $settings.showFilePptx)
                 Toggle("Excel Spreadsheet (.xlsx)", isOn: $settings.showFileXlsx)
-                if !settings.customFileExtensions.isEmpty {
-                    ForEach(settings.customFileExtensions, id: \.self) { ext in
+                if !settings.customFileTypes.isEmpty {
+                    ForEach(settings.customFileTypes) { fileType in
                         HStack {
-                            Text(".\(ext)")
+                            Text(fileType.menuTitle)
                                 .foregroundStyle(.secondary)
                             Spacer()
                             Button {
-                                settings.customFileExtensions = settings.customFileExtensions.filter { $0 != ext }
+                                settings.customFileTypes = settings.customFileTypes.filter { $0.id != fileType.id }
                             } label: {
                                 Image(systemName: "minus.circle.fill")
                                     .foregroundStyle(.red)
@@ -149,8 +152,11 @@ struct ContentView: View {
                     }
                 }
                 HStack {
-                    TextField("Add extension (e.g. swift)", text: $newExtension)
+                    TextField("Description (e.g. TypeScript)", text: $newExtensionName)
                         .textFieldStyle(.roundedBorder)
+                    TextField("Extension (e.g. ts)", text: $newExtension)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(maxWidth: 120)
                         .onSubmit { addCustomExtension() }
                     Button("Add") { addCustomExtension() }
                         .disabled(newExtension.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
